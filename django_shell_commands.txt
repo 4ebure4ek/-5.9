@@ -1,0 +1,58 @@
+# Создание пользователей
+from django.contrib.auth.models import User
+from news.models import Author, Category, Post, Comment
+
+user1 = User.objects.create_user('user1')
+user2 = User.objects.create_user('user2')
+
+author1 = Author.objects.create(user=user1)
+author2 = Author.objects.create(user=user2)
+
+# Создание категорий
+cat1 = Category.objects.create(name='Политика')
+cat2 = Category.objects.create(name='Спорт')
+cat3 = Category.objects.create(name='Наука')
+cat4 = Category.objects.create(name='Искусство')
+
+# Создание постов
+post1 = Post.objects.create(author=author1, post_type='AR', title='Первая статья', content='Текст статьи...')
+post2 = Post.objects.create(author=author1, post_type='AR', title='Вторая статья', content='Другой текст статьи...')
+post3 = Post.objects.create(author=author2, post_type='NW', title='Новости дня', content='Новость о событиях...')
+
+# Присвоение категорий
+post1.categories.add(cat1, cat2)
+post2.categories.add(cat3)
+post3.categories.add(cat4)
+
+# Создание комментариев
+comment1 = Comment.objects.create(post=post1, user=user2, content='Отличная статья!')
+comment2 = Comment.objects.create(post=post1, user=user1, content='Спасибо за обратную связь!')
+comment3 = Comment.objects.create(post=post2, user=user2, content='Интересно, жду продолжения.')
+comment4 = Comment.objects.create(post=post3, user=user1, content='Согласен с новостью!')
+
+# Лайки/дизлайки
+post1.like()
+post1.like()
+post2.like()
+post3.dislike()
+comment1.like()
+comment2.dislike()
+comment3.like()
+comment4.like()
+
+# Обновление рейтинга автора
+author1.update_rating()
+author2.update_rating()
+
+# Вывод лучшего автора
+best_author = Author.objects.order_by('-rating').first()
+print(f"Лучший автор: {best_author.user.username}, рейтинг: {best_author.rating}")
+
+# Вывод лучшей статьи
+best_post = Post.objects.order_by('-rating').first()
+print(f"Лучшая статья: {best_post.title}, автор: {best_post.author.user.username}, рейтинг: {best_post.rating}")
+print(f"Превью: {best_post.preview()}")
+
+# Вывод комментариев к лучшей статье
+for comment in best_post.comment_set.all():
+    print(f"Комментарий от {comment.user.username} ({comment.created_at}): {comment.content} (Рейтинг: {comment.rating})")
